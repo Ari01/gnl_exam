@@ -1,10 +1,9 @@
 #include "get_next_line.h"
-#include <stdio.h>
 
 int	ft_strlen(char *s)
 {
     int	    i;
-    
+
     i = 0;
     while (s[i])
 	i++;
@@ -17,14 +16,48 @@ char	*ft_strchr(char *s, char c)
     {
 	if (*s == c)
 	    return (s);
+	s++;
     }
     return (NULL);
 }
 
+char	*ft_strdup(char *s)
+{
+    char    *dup;
+    int	    i;
+
+    i = 0;
+    dup = malloc(sizeof(*dup) * (ft_strlen(s) + 1));
+    while (s[i])
+    {
+	dup[i] = s[i];
+	i++;
+    }
+    dup[i] = 0;
+    return (dup);
+}
+
+char	*ft_substr(char *s, int start, int len)
+{
+    char    *sub;
+    int	    i;
+
+    sub = malloc(sizeof(*sub) * (len + 1));
+    i = 0;
+    while (i < len)
+    {
+	sub[i] = s[start];
+	i++;
+	start++;
+    }
+    sub[i] = 0;
+    return (sub);
+}
+
 char	*ft_strjoin(char *s1, char *s2)
 {
-    int	    i;
     char    *join;
+    int	    i;
 
     join = malloc(sizeof(*join) * (ft_strlen(s1) + ft_strlen(s2) + 1));
     i = 0;
@@ -46,9 +79,9 @@ char	*ft_strjoin(char *s1, char *s2)
 
 int	readfile(char **buff)
 {
-    int	    ret;
-    char    tmp[100001];
     char    *freeptr;
+    char    tmp[100001];
+    int	    ret;
 
     while ((ret = read(0, tmp, 100000)) > 0)
     {
@@ -62,70 +95,56 @@ int	readfile(char **buff)
     return (ret);
 }
 
-char	*cutbuff(char *buff, int i)
+int	readbuff(char **buff, char **line)
 {
-    int	    j;
+    char    *tmp;
     int	    len;
 
-    len = i;
-    while (buff[len])
+    len = 0;
+    while ((*buff)[len] && (*buff)[len] != '\n')
 	len++;
-    len -= i;
-    buff = malloc(sizeof(*buff) * (len + 1));
-    j = 0;
-    while (buff[i])
+    if (!(*buff)[len])
     {
-	buff[j] = buff[i];
-	i++;
-	j++;
+	*line = ft_strdup(*buff);
+	free(*buff);
+	*buff = 0;
+	return (0);
     }
-    buff[j] = 0;
-    return (buff);
-}
-
-char	*readbuff(char **buff)
-{
-    int	    i;
-    char    *freeptr;
-    char    *line;
-
-    i = 0;
-    freeptr = *buff;
-    while ((*buff)[i] && (*buff)[i] != '\n')
-	i++;
-    line = malloc(sizeof(*line) * (i + 1));
-    i = 0;
-    while ((*buff)[i] && (*buff)[i] != '\n')
-	line[i] = (*buff)[i];
-    line[i] = 0;
-    if ((*buff)[i] == '\n' && (*buff)[++i])
-	*buff = cutbuff(*buff, i);
-    free(freeptr);
-    return (line);
+    *line = ft_substr(*buff, 0, len);
+    tmp = ft_strdup(&((*buff)[len + 1]));
+    free(*buff);
+    *buff = tmp;
+    return (1);
 }
 
 int	get_next_line(char **line)
 {
-    static char    *buff;
-    int		    ret;
+    static char	*buff;
+    char	tmp[2];
+    int		ret;
 
     if (!buff)
     {
-	buff = malloc(sizeof(*buff));
-	*buff = 0;
-    }
-    if (*buff)
-	*line = readbuff(&buff);
-    else
-    {
-	ret = readfile(&buff);
-	if (ret > 0)
-	    *line = readbuff(&buff);
-	else
+	ret = read(0, tmp, 1);
+	tmp[ret] = 0;
+	if (!tmp[0])
 	{
-	    *line = malloc(sizeof(**line));
-	    **line = 0;
+	    *line = ft_strdup("");
+	    return (0);
 	}
+	if (tmp[0] == '\n')
+	{
+	    *line = ft_strdup("");
+	    return (1);
+	}
+	buff = ft_strdup(tmp);
     }
-    return (ret);
+    ret = readfile(&buff);
+    if (ret < 0)
+    {
+	free(buff);
+	buff = 0;
+	return (-1);
+    }
+    return (readbuff(&buff, line));
 }

@@ -80,10 +80,10 @@ char	*ft_strjoin(char *s1, char *s2)
 int	readfile(char **buff)
 {
     char    *freeptr;
-    char    tmp[100001];
+    char    tmp[128];
     int	    ret;
 
-    while ((ret = read(0, tmp, 100000)) > 0)
+    while ((ret = read(0, tmp, 127)) > 0)
     {
 	tmp[ret] = 0;
 	freeptr = *buff;
@@ -97,24 +97,27 @@ int	readfile(char **buff)
 
 int	readbuff(char **buff, char **line)
 {
-    char    *tmp;
+    char    *endline;
+    char    *freeptr;
     int	    len;
+    int	    ret;
 
-    len = 0;
-    while ((*buff)[len] && (*buff)[len] != '\n')
-	len++;
-    if (!(*buff)[len])
+    endline = ft_strchr(*buff, '\n');
+    freeptr = *buff;
+    if (!endline)
     {
 	*line = ft_strdup(*buff);
-	free(*buff);
-	*buff = 0;
-	return (0);
+	ret = 0;
     }
-    *line = ft_substr(*buff, 0, len);
-    tmp = ft_strdup(&((*buff)[len + 1]));
-    free(*buff);
-    *buff = tmp;
-    return (1);
+    else
+    {
+	len = endline - *buff;
+	*line = ft_substr(*buff, 0, len);
+	*buff = ft_strdup(&((*buff)[len + 1]));
+	ret = 1;
+    }
+    free(freeptr);
+    return (ret);
 }
 
 int	get_next_line(char **line)
@@ -123,22 +126,24 @@ int	get_next_line(char **line)
     char	tmp[2];
     int		ret;
 
-    if (!buff)
+    ret = read(0, tmp, 1);
+    if (ret < 0)
+	return (-1);
+    tmp[ret] = 0;
+    if (!tmp[0])
     {
-	ret = read(0, tmp, 1);
-	tmp[ret] = 0;
-	if (!tmp[0])
-	{
-	    *line = ft_strdup("");
-	    return (0);
-	}
-	if (tmp[0] == '\n')
-	{
-	    *line = ft_strdup("");
-	    return (1);
-	}
-	buff = ft_strdup(tmp);
+	*line = ft_strdup("");
+	return (0);
     }
+    if (tmp[0] == '\n')
+    {
+	*line = ft_strdup("");
+	return (1);
+    }
+    if (!buff)
+	buff = ft_strdup(tmp);
+    else
+	buff = ft_strjoin(buff, tmp);
     ret = readfile(&buff);
     if (ret < 0)
     {
