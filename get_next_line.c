@@ -86,6 +86,8 @@ int	readfile(char **buff)
     while ((ret = read(0, tmp, 100000)) > 0)
     {
 	tmp[ret] = 0;
+	if (tmp[0] == '\n' && !tmp[1])
+	    return(2);
 	freeptr = *buff;
 	*buff = ft_strjoin(*buff, tmp);
 	free(freeptr);
@@ -135,6 +137,13 @@ int	get_next_line(char **line)
 	free(buff);
 	buff = 0;
 	return (-1);
+    }
+    if (ret == 2)
+    {
+	*line = ft_strdup("");
+	free(buff);
+	buff = 0;
+	return (1);
     }
     return (readbuff(&buff, line));
 }
