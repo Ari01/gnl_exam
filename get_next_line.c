@@ -97,27 +97,24 @@ int	readfile(char **buff)
 
 int	readbuff(char **buff, char **line)
 {
-    char    *endline;
-    char    *freeptr;
+    char    *tmp;
     int	    len;
-    int	    ret;
 
-    endline = ft_strchr(*buff, '\n');
-    freeptr = *buff;
-    if (!endline)
+    len = 0;
+    while ((*buff)[len] && (*buff)[len] != '\n')
+	len++;
+    if (!(*buff)[len])
     {
 	*line = ft_strdup(*buff);
-	ret = 0;
+	free(*buff);
+	*buff = 0;
+	return (0);
     }
-    else
-    {
-	len = endline - *buff;
-	*line = ft_substr(*buff, 0, len);
-	*buff = ft_strdup(&((*buff)[len + 1]));
-	ret = 1;
-    }
-    free(freeptr);
-    return (ret);
+    *line = ft_substr(*buff, 0, len);
+    tmp = ft_strdup(&((*buff)[len + 1]));
+    free(*buff);
+    *buff = tmp;
+    return (1);
 }
 
 int	get_next_line(char **line)
