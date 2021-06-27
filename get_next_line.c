@@ -1,5 +1,4 @@
 #include "get_next_line.h"
-#include <stdio.h>
 
 int	ft_strlen(char *s)
 {
@@ -11,22 +10,49 @@ int	ft_strlen(char *s)
     return (i);
 }
 
-char	*ft_strjoin(char *s1, char *s2)
+char	*ft_strchr(char *s, char c)
 {
+    while (*s)
+    {
+	if (*s == c)
+	    return (s);
+	s++;
+    }
+    return (NULL);
+}
+
+char	*ft_strdup(char *s)
+{
+    char    *dup;
     int	    i;
-    char    *join;
 
     i = 0;
+    dup = malloc(sizeof(*dup) * (ft_strlen(s) + 1));
+    while (s[i])
+    {
+	dup[i] = s[i];
+	i++;
+    }
+    dup[i] = 0;
+    return (dup);
+}
+
+char	*ft_strjoin(char *s1, char *s2)
+{
+    char    *join;
+    int	    i;
+
     join = malloc(sizeof(*join) * (ft_strlen(s1) + ft_strlen(s2) + 1));
+    i = 0;
     while (*s1)
     {
-	join[i] = s1[i];
+	join[i] = *s1;
 	i++;
 	s1++;
     }
-     while (*s2)
+    while (*s2)
     {
-	join[i] = s2[i];
+	join[i] = *s2;
 	i++;
 	s2++;
     }
@@ -34,65 +60,78 @@ char	*ft_strjoin(char *s1, char *s2)
     return (join);
 }
 
-int	get_next_line(char **line)
+int	readfile(char **buff)
 {
-    int		    ret;
-    int		    i;
-    int		    j;
-    char	    c;
-    char	    tmp[100001];
-    static char	    *buff;
-    char	    *freeptr;
+    char    *freeptr;
+    char    tmp[100001];
+    int	    ret;
 
-    if (!(*line = malloc(sizeof(**line))))
-	return (-1);
-    (*line)[0] = 0;
-    if (!buff)
+    while ((ret = read(0, tmp, 100000)) > 0)
     {
-	ret = read(0, &c, 1);
-	if (ret <= 0 || c == '\n')
-	    return (ret);
-	buff = malloc(sizeof(*buff) * 2);
-	buff[0] = c;
-	buff[1] = 0;
-    }
-    while ((ret = read(0, &tmp, 100000)) > 0)
-    {
-	i = 0;
 	tmp[ret] = 0;
-	freeptr = buff;
-	buff = ft_strjoin(buff, tmp);
+	freeptr = *buff;
+	*buff = ft_strjoin(*buff, tmp);
 	free(freeptr);
-	while (buff[i] && buff[i] != '\n')
-	    i++;
-	*line = malloc(sizeof(**line) * (i + 1));
-	i = 0;
-	j = 0;
-	while (buff[i] && buff[i] != '\n')
-	    (*line)[i] = buff[i];
-	if (buff[i])
-	{
-	    i++;
-	    j = i;
-	    while (buff[i])
-		i++;
-	    buff = malloc(sizeof(*buff) * (i - j + 1));
-	    i = 0;
-	    while (buff[j])
-	    {
-		buff[i] = buff[j];
-		i++;
-		j++;
-	    }
+	if (ft_strchr(tmp, '\n'))
 	    return (1);
-	}
-	else
-	{
-	    buff = malloc(sizeof(*buff));
-	    *buff = 0;
-	}
-	if (!ret && !*buff)
-	    return (0);
     }
     return (ret);
+}
+
+int	readbuff(char **buff, char **line)
+{
+    char    *endline;
+    int	    len;
+    int	    i;
+
+    endline = ft_strchr(*buff, '\n');
+    i = 0;
+    if (!endline)
+    {
+	*line = malloc(1);
+	**line = 0;
+	free(*buff);
+	*buff = 0;
+	return (0);
+    }
+    else
+    {
+	len = endline - *buff;
+	*line = malloc(len);
+	while (i < len)
+	{
+	    (*line)[i] = (*buff)[i];
+	    i++;
+	}
+	i++;
+	*buff = ft_strdup(&(*buff)[i]);
+	
+    }
+    return (1);
+}
+
+int	get_next_line(char **line)
+{
+    static char	*buff;
+
+    if (!buff)
+    {
+	buff = malloc(1);
+	*buff = 0;
+    }
+    if (buff[0] == '\n' && !buff[1])
+    {
+	free(buff);
+	buff = 0;
+	*line = malloc(1);
+	**line = 0;
+	return (1);
+    }
+    if (readfile(&buff) < 0)
+    {
+	free(buff);
+	buff = 0;
+	return (-1);
+    }
+    return (readbuff(&buff, line));
 }
