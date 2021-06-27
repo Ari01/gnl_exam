@@ -128,7 +128,10 @@ int	get_next_line(char **line)
 	ret = read(0, tmp, 1);
 	tmp[ret] = 0;
 	if (!tmp[0])
+	{
+	    *line = ft_strdup("");
 	    return (0);
+	}
 	if (tmp[0] == '\n')
 	{
 	    *line = ft_strdup("");
