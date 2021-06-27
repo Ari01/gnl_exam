@@ -113,7 +113,9 @@ int	readbuff(char **buff, char **line)
     {
 	len = endline - *buff;
 	*line = ft_substr(*buff, 0, len);
-	*buff = ft_strdup(&((*buff)[len + 1]));
+	len++;
+	*buff = ft_substr(*buff, len, ft_strlen(*buff) - len)
+	//*buff = ft_strdup(&((*buff)[len + 1]));
 	ret = 1;
     }
     free(freeptr);
