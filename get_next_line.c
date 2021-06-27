@@ -37,6 +37,23 @@ char	*ft_strdup(char *s)
     return (dup);
 }
 
+char	*ft_substr(char *s, int start, int len)
+{
+    char    *sub;
+    int	    i;
+
+    sub = malloc(sizeof(*sub) * (len + 1));
+    i = 0;
+    while (i < len)
+    {
+	sub[i] = s[start];
+	i++;
+	start++;
+    }
+    sub[i] = 0;
+    return (sub);
+}
+
 char	*ft_strjoin(char *s1, char *s2)
 {
     char    *join;
@@ -81,57 +98,50 @@ int	readfile(char **buff)
 int	readbuff(char **buff, char **line)
 {
     char    *endline;
+    char    *freeptr;
     int	    len;
-    int	    i;
 
     endline = ft_strchr(*buff, '\n');
-    i = 0;
-    if (!endline)
-    {
-	*line = malloc(1);
-	**line = 0;
-	free(*buff);
-	*buff = 0;
-	return (0);
-    }
-    else
-    {
-	len = endline - *buff;
-	*line = malloc(len);
-	while (i < len)
-	{
-	    (*line)[i] = (*buff)[i];
-	    i++;
-	}
-	i++;
-	*buff = ft_strdup(&(*buff)[i]);
-	
-    }
+    freeptr = *buff;
+    len = endline - *buff;
+    *line = ft_substr(*buff, 0, len);
+    len++;
+    *buff = ft_substr(*buff, len, ft_strlen(*buff) - len);
+    free(freeptr);
     return (1);
 }
 
 int	get_next_line(char **line)
 {
     static char	*buff;
+    int		ret;
 
     if (!buff)
     {
-	buff = malloc(1);
-	*buff = 0;
+	buff = malloc(sizeof(*buff) * 2);
+	ret = read(0, buff, 1);
+	buff[ret] = 0;
+	if (*buff == '\n')
+	{
+	    free(buff);
+	    buff = 0;
+	    *line = ft_strdup("");
+	    return (1);
+	}
     }
-    if (buff[0] == '\n' && !buff[1])
-    {
-	free(buff);
-	buff = 0;
-	*line = malloc(1);
-	**line = 0;
-	return (1);
-    }
-    if (readfile(&buff) < 0)
+    ret = readfile(&buff);
+    if (ret < 0)
     {
 	free(buff);
 	buff = 0;
 	return (-1);
+    }
+    if (!ret && !*buff)
+    {
+	*line = ft_strdup("");
+	free(buff);
+	buff = 0;
+	return (0);
     }
     return (readbuff(&buff, line));
 }
