@@ -103,7 +103,7 @@ int	readbuff(char **buff, char **line)
     len = 0;
     while ((*buff)[len] && (*buff)[len] != '\n')
 	len++;
-    if (!buff[len])
+    if (!(*buff)[len])
     {
 	*line = ft_strdup(*buff);
 	free(*buff);
