@@ -133,7 +133,7 @@ int	get_next_line(char **line)
     static char	*buff;
     int		ret;
 
-    if (!buff || ft_strchr(buff, '\n'))
+    if (!buff || !ft_strchr(buff, '\n'))
     {
 	ret = readfile(&buff);
 	if (ret < 0 && buff)
@@ -144,7 +144,7 @@ int	get_next_line(char **line)
 	}
     }
     readbuff(&buff, line);
-    if (!buff || ft_strchr(buff, '\n'))
+    if (!buff || !ft_strchr(buff, '\n'))
     {
 	ret = readfile(&buff);
 	if (ret < 0 && buff)
