@@ -37,116 +37,138 @@ char	*ft_strdup(char *s)
     return (dup);
 }
 
-char	*ft_substr(char *s, int start, int len)
+t_list	*new_list(char *content)
 {
-    char    *sub;
-    int	    i;
+    t_list  *new;
 
-    sub = malloc(sizeof(*sub) * (len + 1));
-    i = 0;
-    while (i < len)
-    {
-	sub[i] = s[start];
-	i++;
-	start++;
-    }
-    sub[i] = 0;
-    return (sub);
+    new = malloc(sizeof(*new));
+    new->content = content;
+    new->next = NULL;
+    return (new);
 }
 
-char	*ft_strjoin(char *s1, char *s2)
+void	list_clear(t_list **list)
 {
-    char    *join;
-    int	    i;
+    t_list  *ite;
 
-    join = malloc(sizeof(*join) * (ft_strlen(s1) + ft_strlen(s2) + 1));
-    i = 0;
-    while (*s1)
+    while (*list)
     {
-	join[i] = *s1;
-	i++;
-	s1++;
+	ite = (*list)->next;
+	free((*list)->content);
+	free(*list);
+	*list = ite;
     }
-    while (*s2)
-    {
-	join[i] = *s2;
-	i++;
-	s2++;
-    }
-    join[i] = 0;
-    return (join);
 }
 
-int	readfile(char **buff)
+t_list	*push_back(t_list *list, char *content)
 {
-    char    *freeptr;
-    char    tmp[128];
+    t_list  *ite;
+
+    ite = list;
+    if (!list)
+	return (new_list(content));
+    while (ite->next)
+	ite = ite->next;
+    ite->next = new_list(content);
+    return (list);
+}
+
+int	find_char(t_list *list, char c)
+{
+    while (list)
+    {
+	if (ft_strchr(list->content, c))
+	    return (1);
+	list = list->next;
+    }
+    return (0);
+}
+
+int	get_len(t_list *list)
+{
+    int	    len;
+    int	    i;
+
+    len = 0;
+    while (list)
+    {
+	i = 0;
+	while (list->content[i] && list->content[i] != '\n')
+	    i++;
+	len += i;
+	if (list->content[i] == '\n')
+	    return (len);
+	list = list->next;
+    }
+    return (len);
+}
+
+int	read_file(t_list **list)
+{
+    char    buffer[129];
     int	    ret;
 
-    while ((ret = read(0, tmp, 127)) > 0)
+    while ((ret = read(0, buffer, 128)) > 0)
     {
-	tmp[ret] = 0;
-	freeptr = *buff;
-	*buff = ft_strjoin(*buff, tmp);
-	free(freeptr);
-	if (ft_strchr(tmp, '\n'))
+	buffer[ret] = 0;
+	*list = push_back(*list, ft_strdup(buffer));
+	if (ft_strchr(buffer, '\n'))
 	    return (1);
     }
     return (ret);
 }
 
-int	readbuff(char **buff, char **line)
+int	read_buff(t_list **list, char **line)
 {
-    char    *tmp;
     int	    len;
+    int	    i;
+    int	    j;
+    t_list  *tmp;
 
-    len = 0;
-    while ((*buff)[len] && (*buff)[len] != '\n')
-	len++;
-    if (!(*buff)[len])
+    len = get_len(*list);
+    *line = malloc(sizeof(**line) * (len + 1));
+    i = 0;
+    while (*list)
     {
-	*line = ft_strdup(*buff);
-	free(*buff);
-	*buff = 0;
-	return (0);
+	j = 0;
+	while ((*list)->content[j] && (*list)->content[j] != '\n')
+	{
+	    (*line)[i] = (*list)->content[j];
+	    i++;
+	    j++;
+	}
+	(*line)[i] = 0;
+	if ((*list)->content[j] == '\n')
+	{
+	    j++;
+	    i = 0;
+	    while ((*list)->content[j])
+	    {
+		(*list)->content[i] = (*list)->content[j];
+		i++;
+		j++;
+	    }
+	    (*list)->content[i] = 0;
+	    return (1);
+	}
+	else
+	{
+	    tmp = (*list)->next;
+	    free((*list)->content);
+	    free(*list);
+	    *list = tmp;
+	}
     }
-    *line = ft_substr(*buff, 0, len);
-    tmp = ft_strdup(&((*buff)[len + 1]));
-    free(*buff);
-    *buff = tmp;
-    return (1);
+    return (0);
 }
 
 int	get_next_line(char **line)
 {
-    static char	*buff;
-    char	tmp[2];
-    int		ret;
+    static t_list   *buff;
+    int		    ret;
 
-    ret = read(0, tmp, 1);
+    ret = read_file(&buff);
     if (ret < 0)
-	return (-1);
-    tmp[ret] = 0;
-    if (!tmp[0])
-    {
-	*line = ft_strdup("");
-	return (0);
-    }
-    if (tmp[0] == '\n')
-    {
-	*line = ft_strdup("");
-	return (1);
-    }
-    if (!buff)
-	buff = ft_strdup(tmp);
-    else
-	buff = ft_strjoin(buff, tmp);
-    ret = readfile(&buff);
-    if (ret < 0)
-    {
-	free(buff);
-	buff = 0;
-	return (-1);
-    }
-    return (readbuff(&buff, line));
+	list_clear(&buff);
+    return (read_buff(&buff, line));
 }
