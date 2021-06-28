@@ -128,7 +128,7 @@ void	readbuff(char **buff, char **line)
 
 int	get_next_line(char **line)
 {
-    static char	*buff;
+    static char	*buff=NULL;
     int		ret;
 
     if (!buff || !ft_strchr(buff, '\n'))
