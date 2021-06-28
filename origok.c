@@ -1,8 +1,8 @@
 #include "get_next_line.h"
 
-int	ft_strlen(char *s)
+int	ft_strlen(char	*s)
 {
-    int	    i;
+    int	i;
 
     i = 0;
     while (s[i])
@@ -23,8 +23,8 @@ char	*ft_strchr(char *s, char c)
 
 char	*ft_strdup(char *s)
 {
-    char    *dup;
     int	    i;
+    char    *dup;
 
     i = 0;
     dup = malloc(sizeof(*dup) * (ft_strlen(s) + 1));
@@ -37,13 +37,36 @@ char	*ft_strdup(char *s)
     return (dup);
 }
 
+char	*ft_strjoin(char *s1, char *s2)
+{
+    int	    i;
+    char    *join;
+
+    i = 0;
+    join = malloc(sizeof(*join) * (ft_strlen(s1) + ft_strlen(s2) + 1));
+    while (*s1)
+    {
+	join[i] = *s1;
+	s1++;
+	i++;
+    }
+    while (*s2)
+    {
+	join[i] = *s2;
+	s2++;
+	i++;
+    }
+    join[i] = 0;
+    return (join);
+}
+
 char	*ft_substr(char *s, int start, int len)
 {
     char    *sub;
     int	    i;
 
-    sub = malloc(sizeof(*sub) * (len + 1));
     i = 0;
+    sub = malloc(sizeof(*sub) * (len + 1));
     while (i < len)
     {
 	sub[i] = s[start];
@@ -54,34 +77,11 @@ char	*ft_substr(char *s, int start, int len)
     return (sub);
 }
 
-char	*ft_strjoin(char *s1, char *s2)
-{
-    char    *join;
-    int	    i;
-
-    join = malloc(sizeof(*join) * (ft_strlen(s1) + ft_strlen(s2) + 1));
-    i = 0;
-    while (*s1)
-    {
-	join[i] = *s1;
-	i++;
-	s1++;
-    }
-    while (*s2)
-    {
-	join[i] = *s2;
-	i++;
-	s2++;
-    }
-    join[i] = 0;
-    return (join);
-}
-
 int	readfile(char **buff)
 {
-    char    *freeptr;
-    char    tmp[256];
     int	    ret;
+    char    tmp[256];
+    char    *freeptr;
 
     while ((ret = read(0, tmp, 255)) > 0)
     {
@@ -94,7 +94,7 @@ int	readfile(char **buff)
 	    *buff = ft_strjoin(*buff, tmp);
 	    free(freeptr);
 	}
-	if (ft_strchr(tmp, '\n'))
+	if (ft_strchr(*buff, '\n'))
 	    return (1);
     }
     return (ret);
@@ -102,17 +102,16 @@ int	readfile(char **buff)
 
 void	readbuff(char **buff, char **line)
 {
-    char    *tmp;
+    char    *freeptr;
+    char    *endline;
     int	    len;
 
-    len = 0;
     if (!*buff)
 	*line = ft_strdup("");
     else
     {
-	while ((*buff)[len] && (*buff)[len] != '\n')
-	    len++;
-	if (!(*buff)[len])
+	endline = ft_strchr(*buff, '\n');
+	if (!endline)
 	{
 	    *line = ft_strdup(*buff);
 	    free(*buff);
@@ -120,18 +119,19 @@ void	readbuff(char **buff, char **line)
 	}
 	else
 	{
+	    len = endline - *buff;
 	    *line = ft_substr(*buff, 0, len);
-	    tmp = ft_strdup(&((*buff)[len + 1]));
-	    free(*buff);
-	    *buff = tmp;
+	    freeptr = *buff;
+	    *buff = ft_strdup(&((*buff)[len + 1]));
+	    free(freeptr);
 	}
     }
 }
 
 int	get_next_line(char **line)
 {
-    static char	*buff;
     int		ret;
+    static char	*buff;
 
     if (!buff || !ft_strchr(buff, '\n'))
     {

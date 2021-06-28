@@ -80,30 +80,19 @@ char	*ft_strjoin(char *s1, char *s2)
 int	readfile(char **buff)
 {
     char    *freeptr;
-    char    tmp[100001];
-    char    minibuff[100001];
+    char    tmp[256];
     int	    ret;
-    int	    i;
 
-    i = 0;
-    while ((ret = read(0, tmp, 100000)) > 0)
+    while ((ret = read(0, tmp, 255)) > 0)
     {
 	tmp[ret] = 0;
-	if (ret + i < 100000)
-	{
-	    while (ret >= 0)
-	    {
-		minibuff[i + ret] = tmp[ret];
-		ret--;
-	    }
-	    i += ret;
-	}
+	if (!*buff)
+	    *buff = ft_strdup(tmp);
 	else
 	{
 	    freeptr = *buff;
-	    *buff = ft_strjoin(*buff, minibuff);
+	    *buff = ft_strjoin(*buff, tmp);
 	    free(freeptr);
-	    i = 0;
 	}
 	if (ft_strchr(tmp, '\n'))
 	    return (1);
@@ -111,55 +100,59 @@ int	readfile(char **buff)
     return (ret);
 }
 
-int	readbuff(char **buff, char **line)
+void	readbuff(char **buff, char **line)
 {
     char    *tmp;
     int	    len;
 
     len = 0;
-    while ((*buff)[len] && (*buff)[len] != '\n')
-	len++;
-    if (!(*buff)[len])
+    if (!*buff)
+	*line = ft_strdup("");
+    else
     {
-	*line = ft_strdup(*buff);
-	free(*buff);
-	*buff = 0;
-	return (0);
+	while ((*buff)[len] && (*buff)[len] != '\n')
+	    len++;
+	if (!(*buff)[len])
+	{
+	    *line = ft_strdup(*buff);
+	    free(*buff);
+	    *buff = 0;
+	}
+	else
+	{
+	    *line = ft_substr(*buff, 0, len);
+	    tmp = ft_strdup(&((*buff)[len + 1]));
+	    free(*buff);
+	    *buff = tmp;
+	}
     }
-    *line = ft_substr(*buff, 0, len);
-    tmp = ft_strdup(&((*buff)[len + 1]));
-    free(*buff);
-    *buff = tmp;
-    return (1);
 }
 
 int	get_next_line(char **line)
 {
     static char	*buff;
-    char	tmp[2];
     int		ret;
 
-    ret = read(0, tmp, 1);
-    if (ret < 0)
-	return (-1);
-    tmp[ret] = 0;
-    if (!tmp[0])
+    if (!buff || !ft_strchr(buff, '\n'))
     {
-	*line = ft_strdup("");
-	return (0);
+	ret = readfile(&buff);
+	if (ret < 0 && buff)
+	{
+	    free(buff);
+	    buff = 0;
+	    return (-1);
+	}
     }
-    if (tmp[0] == '\n')
+    readbuff(&buff, line);
+    if (!buff || !ft_strchr(buff, '\n'))
     {
-	*line = ft_strdup("");
-	return (1);
+	ret = readfile(&buff);
+	if (ret < 0 && buff)
+	{
+	    free(buff);
+	    buff = 0;
+	    return (-1);
+	}
     }
-    buff = ft_strdup(tmp);
-    ret = readfile(&buff);
-    if (ret < 0)
-    {
-	free(buff);
-	buff = 0;
-	return (-1);
-    }
-    return (readbuff(&buff, line));
+    return (!!buff);
 }
