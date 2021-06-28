@@ -106,20 +106,23 @@ void	readbuff(char **buff, char **line)
     int	    len;
 
     len = 0;
-    while ((*buff)[len] && (*buff)[len] != '\n')
-	len++;
-    if (!(*buff)[len])
+    if (*buff)
     {
-	*line = ft_strdup(*buff);
-	free(*buff);
-	*buff = 0;
-    }
-    else
-    {
-	*line = ft_substr(*buff, 0, len);
-	tmp = ft_strdup(&((*buff)[len + 1]));
-	free(*buff);
-	*buff = tmp;
+	while ((*buff)[len] && (*buff)[len] != '\n')
+	    len++;
+	if (!(*buff)[len])
+	{
+	    *line = ft_strdup(*buff);
+	    free(*buff);
+	    *buff = 0;
+	}
+	else
+	{
+	    *line = ft_substr(*buff, 0, len);
+	    tmp = ft_strdup(&((*buff)[len + 1]));
+	    free(*buff);
+	    *buff = tmp;
+	}
     }
 }
 
