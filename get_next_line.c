@@ -106,7 +106,9 @@ void	readbuff(char **buff, char **line)
     int	    len;
 
     len = 0;
-    if (*buff)
+    if (!*buff)
+	*line = ft_strdup("");
+    else
     {
 	while ((*buff)[len] && (*buff)[len] != '\n')
 	    len++;
@@ -128,7 +130,7 @@ void	readbuff(char **buff, char **line)
 
 int	get_next_line(char **line)
 {
-    static char	*buff=NULL;
+    static char	*buff;
     int		ret;
 
     if (!buff || !ft_strchr(buff, '\n'))
