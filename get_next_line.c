@@ -159,7 +159,7 @@ int	read_buff(t_list **list, char **line)
 	    *list = tmp;
 	}
     }
-    return (0);
+    return (1);
 }
 
 int	get_next_line(char **line)
@@ -167,8 +167,24 @@ int	get_next_line(char **line)
     static t_list   *buff;
     int		    ret;
 
-    ret = read_file(&buff);
-    if (ret < 0)
-	list_clear(&buff);
-    return (read_buff(&buff, line));
+    if (!buff || !find_char(buff, '\n'))
+    {
+	ret = read_file(&buff);
+	if (ret < 0)
+	{
+	    list_clear(&buff);
+	    return (-1);
+	}
+    }
+    read_buff(&buff, line);
+    if (!buff || !find_char(buff, '\n'))
+    {
+	ret = read_file(&buff);
+	if (ret < 0)
+	{
+	    list_clear(&buff);
+	    return (-1);
+	}
+    }
+    return (!!buff);
 }
